@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MICHAEL STÄHLI.EXE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+            border-left: 2px solid #00ffff;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #ff00ff 0%, #00ffff 100%);
+            border-radius: 6px;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00ffff 0%, #ff00ff 100%);
+        }
+
+        /* Animated background grid */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridScroll 20s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Scanlines effect */
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 999;
+            animation: scanlineMove 8s linear infinite;
+        }
+
+        /* Arcade cabinet container */
+        .arcade-cabinet {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-radius: 20px;
+            border: 8px solid #333;
+            box-shadow: 
+                0 0 100px rgba(0, 255, 255, 0.3),
+                inset 0 0 50px rgba(0, 0, 0, 0.5),
+                0 20px 50px rgba(0, 0, 0, 0.9);
+            z-index: 2;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Screen area */
+        .screen {
+            background: radial-gradient(circle at 50% 50%, #0a0020 0%, #000000 100%);
+            border: 5px solid #222;
+            border-radius: 10px;
+            margin: 30px;
+            padding: 40px;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        /* Title screen - always visible */
+        .title-screen {
+            text-align: center;
+            padding: 60px 20px;
+            background: radial-gradient(circle, #1a0a2e 0%, #000000 100%);
+            margin: -40px -40px 40px -40px;
+            border-bottom: 3px solid #00ffff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .game-title {
+            font-size: 48px;
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #00ff41;
+            margin-bottom: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .tagline {
+            font-size: 10px;
+            color: #888;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .insert-coin {
+            font-size: 20px;
+            color: #ffaa00;
+            margin-top: 20px;
+            animation: blink 1.5s infinite;
+        }
+
+        /* Contact bar */
+        .contact-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            margin-bottom: 40px;
+            font-size: 10px;
+        }
+
+        .contact-item {
+            color: #00ffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Scroll Animation Classes */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-100px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .slide-in-left.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .slide-in-right.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .scale-in.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .glitch-in {
+            opacity: 0;
+            animation: none;
+        }
+
+        .glitch-in.active {
+            opacity: 1;
+            animation: glitchEffect 0.5s ease-in-out;
+        }
+
+        /* Stagger animation for grid items */
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(30px) scale(0.95);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .stagger-item.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Add delays for stagger effect */
+        .stagger-item:nth-child(1) { transition-delay: 0.1s; }
+        .stagger-item:nth-child(2) { transition-delay: 0.2s; }
+        .stagger-item:nth-child(3) { transition-delay: 0.3s; }
+        .stagger-item:nth-child(4) { transition-delay: 0.4s; }
+        .stagger-item:nth-child(5) { transition-delay: 0.5s; }
+        .stagger-item:nth-child(6) { transition-delay: 0.6s; }
+        .stagger-item:nth-child(7) { transition-delay: 0.7s; }
+        .stagger-item:nth-child(8) { transition-delay: 0.8s; }
+
+        /* Section headers */
+        .section {
+            margin-bottom: 80px;
+        }
+
+        .section-header {
+            font-size: 24px;
+            color: #ff00ff;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px #ff00ff;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #ff00ff, transparent);
+        }
+
+        /* Story box */
+        .story-box {
+            background: rgba(0, 100, 255, 0.1);
+            border: 3px solid #0088ff;
+            border-radius: 10px;
+            padding: 30px;
+            font-size: 11px;
+            line-height: 2;
+            color: #aaa;
+            box-shadow: 0 0 20px rgba(0, 136, 255, 0.3);
+        }
+
+        /* Power-ups grid (Skills) */
+        .powerups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .powerup {
+            background: linear-gradient(135deg, rgba(0, 255, 65, 0.2) 0%, rgba(0, 255, 65, 0.05) 100%);
+            border: 3px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .powerup::before {
+            content: '★';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #ffaa00;
+            animation: spin 3s linear infinite;
+        }
+
+        .powerup.active:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.5);
+        }
+
+        .powerup-title {
+            font-size: 12px;
+            color: #00ff41;
+            margin-bottom: 10px;
+        }
+
+        .powerup-desc {
+            font-size: 8px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        /* Experience timeline */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+            border-left: 4px solid #ff00ff;
+        }
+
+        .timeline-item {
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '●';
+            position: absolute;
+            left: -50px;
+            top: 0;
+            font-size: 24px;
+            color: #ff00ff;
+        }
+
+        .timeline-item.active::before {
+            animation: pulse 2s infinite;
+        }
+
+        .timeline-date {
+            font-size: 10px;
+            color: #ffaa00;
+            margin-bottom: 10px;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            color: #00ffff;
+            margin-bottom: 10px;
+        }
+
+        .timeline-company {
+            font-size: 11px;
+            color: #ff00ff;
+            margin-bottom: 15px;
+        }
+
+        .timeline-desc {
+            font-size: 9px;
+            color: #888;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+
+        /* Stats bars (Languages) */
+        .stats-grid {
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stat-bar {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #00ffff;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-fill {
+            height: 15px;
+            background: linear-gradient(90deg, #00ff41 0%, #00ffff 100%);
+            border-radius: 3px;
+            box-shadow: 0 0 10px #00ffff;
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .stat-bar.active .stat-fill {
+            width: var(--fill-width);
+        }
+
+        /* Achievements (Certificates) */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .achievement {
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.2) 0%, rgba(255, 170, 0, 0.05) 100%);
+            border: 2px solid #ffaa00;
+            border-radius: 5px;
+            padding: 15px;
+            font-size: 9px;
+            color: #ffaa00;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .achievement::before {
+            content: '🏆';
+            font-size: 24px;
+        }
+
+        /* Bonus items (Hobbies) */
+        .bonus-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .bonus-item {
+            background: linear-gradient(135deg, rgba(255, 0, 255, 0.2) 0%, rgba(255, 0, 255, 0.05) 100%);
+            border: 2px solid #ff00ff;
+            border-radius: 20px;
+            padding: 10px 20px;
+            font-size: 9px;
+            color: #ff00ff;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bonus-item::before {
+            content: '♦';
+            font-size: 16px;
+            color: #ffaa00;
+        }
+
+        /* Level badges (Education) */
+        .level-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .level-badge {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(0, 255, 255, 0.05) 100%);
+            border: 3px solid #00ffff;
+            border-radius: 10px;
+            padding: 25px;
+            position: relative;
+        }
+
+        .level-badge::before {
+            content: 'LEVEL UP!';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #000;
+            padding: 5px 15px;
+            font-size: 8px;
+            color: #00ff41;
+            border: 2px solid #00ff41;
+            border-radius: 3px;
+        }
+
+        .level-title {
+            font-size: 12px;
+            color: #00ffff;
+            margin-bottom: 8px;
+        }
+
+        .level-location {
+            font-size: 9px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .level-date {
+            font-size: 8px;
+            color: #ffaa00;
+        }
+
+        .level-desc {
+            font-size: 8px;
+            color: #888;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .game-footer {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-top: 3px solid #00ffff;
+            margin: 40px -40px -40px -40px;
+        }
+
+        .game-over {
+            font-size: 32px;
+            color: #ff00ff;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .credits {
+            font-size: 10px;
+            color: #888;
+            line-height: 2;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: fixed;
+            top: 50%;
+            right: 30px;
+            transform: translateY(-50%);
+            z-index: 1000;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-arrow {
+            font-size: 24px;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        /* Animations */
+        @keyframes gridScroll {
+            from { transform: translateY(0); }
+            to { transform: translateY(50px); }
+        }
+
+        @keyframes scanlineMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 0, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.3); }
+            50% { text-shadow: 0 0 30px rgba(0, 255, 255, 0.5), 0 0 60px rgba(0, 255, 255, 0.3); }
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-50%); }
+            50% { transform: translateY(-40%); }
+        }
+
+        @keyframes glitchEffect {
+            0% {
+                transform: translate(0);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(-5px, 5px);
+                opacity: 0.5;
+            }
+            40% {
+                transform: translate(5px, -5px);
+                opacity: 0.7;
+            }
+            60% {
+                transform: translate(-5px, -5px);
+                opacity: 0.9;
+            }
+            80% {
+                transform: translate(5px, 5px);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .game-title { font-size: 32px; }
+            .subtitle { font-size: 12px; }
+            .section-header { font-size: 18px; }
+            .screen { padding: 20px; }
+            .contact-bar { font-size: 8px; gap: 15px; }
+            .powerups-grid { grid-template-columns: 1fr; }
+            .timeline { padding-left: 30px; }
+            .scroll-indicator { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background effects -->
+    <div class="bg-grid"></div>
+    <div class="scanlines"></div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+        <div class="scroll-arrow">▼</div>
+    </div>
+
+    <!-- Arcade Cabinet -->
+    <div class="arcade-cabinet">
+        <div class="screen">
+            <!-- Title Screen - Sticky -->
+            <div class="title-screen">
+                <div class="game-title">MICHAEL STÄHLI.EXE</div>
+                <div class="subtitle">Technology & Transformation Consultant</div>
+                <div class="tagline">
+                    15 YEARS EXPERIENCE • FINTECH → SUSTAINABILITY TECH<br>
+                    ENTERPRISE ARCHITECTURE • DIGITAL INNOVATION • TEAM LEADERSHIP
+                </div>
+                <div class="insert-coin">◆ SCROLL TO CONTINUE ◆</div>
+            </div>
+
+            <!-- Contact Bar -->
+            <div class="contact-bar scroll-reveal">
+                <div class="contact-item">📍 Lachen, Switzerland</div>
+                <div class="contact-item">📞 079 687 13 95</div>
+                <div class="contact-item">✉ michael.staehli@protonmail.com</div>
+                <div class="contact-item">🎂 10.04.1991</div>
+            </div>
+
+            <!-- MY STORY Section -->
+            <div class="section">
+                <div class="section-header glitch-in">◆ Player Profile ◆</div>
+                <div class="story-box scale-in">
+                    I am a Technology & Transformation Consultant with 15 years of experience, including 7 years transforming financial services through enterprise architecture and digital innovation while leading cross-functional teams and managing stakeholders across all organizational levels. Now channeling this expertise toward social-, economic- and ecological value generation, and supporting organizations to achieve net-zero profitability.<br><br>
+                    
+                    On a strategic career break to pivot from fintech to purpose-driven work, pursuing a Master of Science in Environment and Natural Resources with major in Ecological Engineering and Renewable Energy to build foundational knowledge for lasting impact.<br><br>
+                    
+                    I excel at untangling complex systems and translating technical depth into actionable clarity—communicating effectively across four languages (German, English, Spanish, French) and collaborating with diverse, multidisciplinary teams. Seeking organizations where rigorous problem-solving drives meaningful environmental change.
+                </div>
+            </div>
+
+            <!-- Core Skills / Power-Ups -->
+            <div class="section">
+                <div class="section-header glitch-in">◆ Power-Ups Unlocked ◆</div>
+                <div class="powerups-grid">
+                    <div class="powerup stagger-item">
+                        <div class="powerup-title">Enterprise Architecture</div>
+                        <div class="powerup-desc">TOGAF 9.2 • Microservices • System Design</div>
+                    </div>
+                    <div class="powerup stagger-item">
+                        <div class="powerup-title">API Security</div>
+                        <div class="powerup-desc">FAPI 2.0 • OAuth 2.0 • Standards Development</div>
+                    </div>
+                    <div class="powerup stagger-item">
+                        <div class="powerup-title">Requirements Engineering</div>
+                        <div class="powerup-desc">IREB Certified • Lifecycle Management</div>
+                    </div>
+                    <div class="powerup stagger-item">
+                        <div class="powerup-title">Information Security</div>
+                        <div class="powerup-desc">CISM • Ethical Hacking • Digital Forensics</div>
+                    </div>
+                    <div class="powerup stagger-item">
+                        <div class="powerup-title">DevSustOps</div>
+                        <div class="powerup-desc">Green Software • Sustainability Integration</div>
+                    </div>
+                    <div class="powerup stagger-item">
+                        <div class="powerup-title">Team Leadership</div>
+                        <div class="powerup-desc">Cross-functional • Stakeholder Management</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Experience / Campaign Mode - ALL ITEMS -->
+            <div class="section">
+                <div class="section-header glitch-in">◆ Campaign Progress ◆</div>
+                <div class="timeline">
+                    <!-- Item 1 -->
+                    <div class="timeline-item slide-in-left">
+                        <div class="timeline-date">08.2025 – CURRENT</div>
+                        <div class="timeline-title">Sabbatical</div>
+                        <div class="timeline-company">Working in different Surfcamps, Ericeira, Portugal</div>
+                        <div class="timeline-desc">→ Preparing Career Transition to meaningful, sustainable work</div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="timeline-item slide-in-right">
+                        <div class="timeline-date">01.2023 – 07.2025</div>
+                        <div class="timeline-title">(Senior) Technology Advisor, 100%</div>
+                        <div class="timeline-company">Synpulse8, Zurich</div>
+                        <div class="timeline-desc">→ Led architecture transformation initiatives for Swiss Private Bank, designing transition from monolithic to microservice-driven architecture across international operations</div>
+                        <div class="timeline-desc">→ Served as stream lead for Swiss API security standards, collaborating with SFTI and SIX to develop national financial services framework while leading community initiatives focusing on FAPI and OAuth 2.0</div>
+                        <div class="timeline-desc">→ Delivered end-to-end CRM implementations and marketing automation solutions for external asset managers and major health insurers, from requirements analysis through production deployment</div>
+                        <div class="timeline-desc">→ Established reusable architecture frameworks and governance assets including microservices review methodology, information security KPIs, and technology assessment approaches</div>
+                        <div class="timeline-desc">→ Shaped tech advisory strategy and provided pre-sales expertise on information security management, IT strategy reviews, and e-ID development across RFP processes</div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="timeline-item slide-in-left">
+                        <div class="timeline-date">04.2022 – 12.2022</div>
+                        <div class="timeline-title">Entrepreneur in Residence, 90%</div>
+                        <div class="timeline-company">VNTR Innovation Lab, PostFinance AG, Bern</div>
+                        <div class="timeline-desc">→ Designed, configured and operated the team's innovation management system across Gartner's 3 Horizons framework, including trend radar, opportunity templates, and VC investment tracking</div>
+                        <div class="timeline-desc">→ Co-designed a sustainable retirement investment app with Paris Agreement-aligned portfolio screening, carbon footprint tracking, and impact measurement</div>
+                        <div class="timeline-desc">→ Coached ESG-focused startup on go-to-market strategy, value proposition, and partnership models for connecting sustainable startups with established corporations</div>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="timeline-item slide-in-right">
+                        <div class="timeline-date">09.2020 – 03.2022</div>
+                        <div class="timeline-title">IT Requirements Engineer, 90%</div>
+                        <div class="timeline-company">PostFinance AG, Bern</div>
+                        <div class="timeline-desc">→ Orchestrated and maintained a sustainable Requirements Management lifecycle, including elicitation, specification, implementation, and incident resolution</div>
+                        <div class="timeline-desc">→ Engineered requirements for the continuous development of PostFinance's Payment Order Management System</div>
+                        <div class="timeline-desc">→ Supported incident management and bug resolution</div>
+                    </div>
+
+                    <!-- Item 5 -->
+                    <div class="timeline-item slide-in-left">
+                        <div class="timeline-date">09.2019 – 08.2020</div>
+                        <div class="timeline-title">Junior IT Project Manager, 80%</div>
+                        <div class="timeline-company">VZ Depotbank, Zug</div>
+                        <div class="timeline-desc">→ Lead the creation of an RPA (Robotic Process Automation) Competence Center, enhancing operational efficiency</div>
+                        <div class="timeline-desc">→ Drove process optimization across Core Banking Systems and eBanking platforms</div>
+                        <div class="timeline-desc">→ Served as a Finnova Payment Module Specialist, leading the successful implementation of the QR Bill project</div>
+                        <div class="timeline-desc">→ Managed and maintained Change Management protocols for Core Banking Payment Systems, ensuring seamless transitions</div>
+                    </div>
+
+                    <!-- Item 6 -->
+                    <div class="timeline-item slide-in-right">
+                        <div class="timeline-date">11.2017 – 05.2018</div>
+                        <div class="timeline-title">Assistant, Financial Consultant, 20%</div>
+                        <div class="timeline-company">VZ Vermögenszentrum, Zurich</div>
+                        <div class="timeline-desc">→ Supported financial consulting operations while completing BSc studies</div>
+                    </div>
+
+                    <!-- Item 7 -->
+                    <div class="timeline-item slide-in-left">
+                        <div class="timeline-date">02.2015 – 03.2016</div>
+                        <div class="timeline-title">Cultural Exchange - Mexico</div>
+                        <div class="timeline-company">Universidad de Hermosillo</div>
+                        <div class="timeline-desc">→ International experience and Spanish language immersion</div>
+                    </div>
+
+                    <!-- Item 8 -->
+                    <div class="timeline-item slide-in-right">
+                        <div class="timeline-date">12.2012 – 12.2014</div>
+                        <div class="timeline-title">Backoffice – Client Administration, 100%</div>
+                        <div class="timeline-company">ARVEST Privatbank AG, Pfäffikon SZ</div>
+                        <div class="timeline-desc">→ Portfolio management and valuation, optimizing financial performance</div>
+                        <div class="timeline-desc">→ Daily treasury management</div>
+                        <div class="timeline-desc">→ Participated in the asset management committee, including decision-making</div>
+                    </div>
+
+                    <!-- Item 9 -->
+                    <div class="timeline-item slide-in-left">
+                        <div class="timeline-date">04.2012 – 11.2012</div>
+                        <div class="timeline-title">Language Exchange - Vancouver</div>
+                        <div class="timeline-company">Global Village, Vancouver</div>
+                        <div class="timeline-desc">→ English language immersion and international experience</div>
+                    </div>
+
+                    <!-- Item 10 -->
+                    <div class="timeline-item slide-in-right">
+                        <div class="timeline-date">10.2011 – 03.2012</div>
+                        <div class="timeline-title">Basic Military Training</div>
+                        <div class="timeline-company">Swiss Army, Dübendorf, Switzerland</div>
+                        <div class="timeline-desc">→ Completed mandatory military service</div>
+                    </div>
+
+                    <!-- Item 11 -->
+                    <div class="timeline-item slide-in-left">
+                        <div class="timeline-date">07.2011 – 09.2011</div>
+                        <div class="timeline-title">Backoffice – Client Administration, 100%</div>
+                        <div class="timeline-company">ARVEST Privatbank AG, Pfäffikon SZ</div>
+                        <div class="timeline-desc">→ Client administration and portfolio support</div>
+                    </div>
+
+                    <!-- Item 12 -->
+                    <div class="timeline-item slide-in-right">
+                        <div class="timeline-date">08.2008 – 07.2011</div>
+                        <div class="timeline-title">Commercial Apprenticeship, 100%</div>
+                        <div class="timeline-company">ARVEST Privatbank AG, Pfäffikon SZ</div>
+                        <div class="timeline-desc">→ Three-year vocational training program in banking and financial services</div>
+                        <div class="timeline-desc">→ Foundation in commercial banking operations and client services</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education / Level System -->
+            <div class="section">
+                <div class="section-header glitch-in">◆ Level Progress ◆</div>
+                <div class="level-grid">
+                    <div class="level-badge scale-in">
+                        <div class="level-title">MSc Environment and Natural Resources</div>
+                        <div class="level-location">Zurich University of Applied Sciences (ZHAW)</div>
+                        <div class="level-date">02.2026 – IN PROGRESS</div>
+                        <div class="level-desc">Major in Ecological Engineering and Renewable Energy</div>
+                    </div>
+
+                    <div class="level-badge scale-in">
+                        <div class="level-title">MSc Business Information Systems</div>
+                        <div class="level-location">University of Applied Sciences Northwestern Switzerland</div>
+                        <div class="level-date">08.2019 – 08.2021</div>
+                    </div>
+
+                    <div class="level-badge scale-in">
+                        <div class="level-title">BSc International Management</div>
+                        <div class="level-location">Zurich University of Applied Sciences</div>
+                        <div class="level-date">08.2016 – 02.2019</div>
+                        <div class="level-desc">
+                            Including exchange year at University of Applied Sciences Amsterdam (08.2017 – 07.2018)<br>
+                            One month cultural exchange at Donghua University, Shanghai
+                        </div>
+                    </div>
+
+                    <div class="level-badge scale-in">
+                        <div class="level-title">Vocational Baccalaureate</div>
+                        <div class="level-location">Kaufmännische Berufsschule Lachen</div>
+                        <div class="level-date">08.2013 – 06.2014</div>
+                    </div>
+
+                    <div class="level-badge scale-in">
+                        <div class="level-title">Commercial Apprenticeship</div>
+                        <div class="level-location">ARVEST Privatbank AG, Pfäffikon SZ</div>
+                        <div class="level-date">08.2008 – 07.2011</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Languages / Stats -->
+            <div class="section">
+                <div class="section-header glitch-in">◆ Language Stats ◆</div>
+                <div class="stats-grid">
+                    <div class="stat-bar scroll-reveal" style="--fill-width: 100%;">
+                        <div class="stat-label">
+                            <span>GERMAN</span>
+                            <span>NATIVE</span>
+                        </div>
+                        <div class="stat-fill"></div>
+                    </div>
+
+                    <div class="stat-bar scroll-reveal" style="--fill-width: 95%;">
+                        <div class="stat-label">
+                            <span>ENGLISH</span>
+                            <span>PROFICIENCY</span>
+                        </div>
+                        <div class="stat-fill"></div>
+                    </div>
+
+                    <div class="stat-bar scroll-reveal" style="--fill-width: 70%;">
+                        <div class="stat-label">
+                            <span>SPANISH</span>
+                            <span>INTERMEDIATE</span>
+                        </div>
+                        <div class="stat-fill"></div>
+                    </div>
+
+                    <div class="stat-bar scroll-reveal" style="--fill-width: 65%;">
+                        <div class="stat-label">
+                            <span>FRENCH</span>
+                            <span>INTERMEDIATE</span>
+                        </div>
+                        <div class="stat-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certificates / Achievements -->
+            <div class="section">
+                <div class="section-header glitch-in">◆ Achievements Unlocked ◆</div>
+                <div class="achievements-grid">
+                    <div class="achievement stagger-item">
+                        <div>2025 • Green Software Practitioner (Green Software Foundation)</div>
+                    </div>
+                    <div class="achievement stagger-item">
+                        <div>2024 • Certified Information Security Manager - CISM (ISACA accreditation pending)</div>
+                    </div>
+                    <div class="achievement stagger-item">
+                        <div>2024 • Ethical Hacking Fundamentals (EC Council)</div>
+                    </div>
+                    <div class="achievement stagger-item">
+                        <div>2024 • Network Defense Fundamentals (EC Council)</div>
+                    </div>
+                    <div class="achievement stagger-item">
+                        <div>2024 • Digital Forensics Essentials (EC Council)</div>
+                    </div>
+                    <div class="achievement stagger-item">
+                        <div>2021 • Scrum Product Owner (Scrum.org)</div>
+                    </div>
+                    <div class="achievement stagger-item">
+                        <div>2020 • Certified Professional for Requirements Engineering (IREB)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hobbies / Bonus Items -->
+            <div class="section">
+                <div class="section-header glitch-in">◆ Bonus Items ◆</div>
+                <div class="bonus-grid">
+                    <div class="bonus-item stagger-item">Surfing</div>
+                    <div class="bonus-item stagger-item">Snowboarding (26 years)</div>
+                    <div class="bonus-item stagger-item">Mountaineering</div>
+                    <div class="bonus-item stagger-item">Cooking</div>
+                    <div class="bonus-item stagger-item">Pottery</div>
+                    <div class="bonus-item stagger-item">Travel & Subcultures</div>
+                    <div class="bonus-item stagger-item">Continuous Learning</div>
+                    <div class="bonus-item stagger-item">Volunteer @ rehkitzrettung.ch</div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="game-footer scroll-reveal">
+                <div class="game-over">READY PLAYER ONE</div>
+                <div class="credits">
+                    © 2026 MICHAEL STÄHLI • ALL RIGHTS RESERVED<br>
+                    REFERENCES AVAILABLE ON REQUEST<br>
+                    <br>
+                    THANK YOU FOR PLAYING!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all scroll-reveal elements
+        document.addEventListener('DOMContentLoaded', () => {
+            const scrollElements = document.querySelectorAll(
+                '.scroll-reveal, .slide-in-left, .slide-in-right, .scale-in, .glitch-in, .stagger-item'
+            );
+            
+            scrollElements.forEach(el => observer.observe(el));
+
+            // Hide scroll indicator after first scroll
+            let hasScrolled = false;
+            window.addEventListener('scroll', () => {
+                if (!hasScrolled && window.scrollY > 100) {
+                    hasScrolled = true;
+                    document.querySelector('.scroll-indicator').style.opacity = '0';
+                    setTimeout(() => {
+                        document.querySelector('.scroll-indicator').style.display = 'none';
+                    }, 500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
